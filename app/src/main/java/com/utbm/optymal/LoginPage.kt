@@ -20,17 +20,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Preview(showBackground = true)
 @Composable
 fun LoginPage(){
-    var auth by remember { mutableStateOf(LoginPageViewModel()) }
-
+    val context = LocalContext.current
+    val viewModel: LoginPageViewModel = viewModel(factory = LoginPageViewModelFactory(context))
     Surface(modifier = Modifier.fillMaxSize().background(Color.White)){
         Column (verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally){
             var email by remember { mutableStateOf("") }

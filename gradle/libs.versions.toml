@@ -12,7 +12,7 @@ comGoogleGmsGoogleServicesGradlePlugin = "4.4.2"
 googleServices = "4.4.2"
 playServices = "12.0.1"
 googleGmsGoogleServices = "4.4.2"
-firebaseFirestore = "25.1.2"
+firebaseFirestore = "25.1.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
