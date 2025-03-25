@@ -1,4 +1,4 @@
-package com.utbm.optymal
+package com.utbm.optymal.viewModel
 
 import android.app.Application
 import android.util.Log
@@ -21,21 +21,22 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
-import android.app.Activity
-import android.content.Context
 import androidx.lifecycle.application
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.utbm.optymal.R
 
 enum class LoginType {GOOGLE, MAIL,PHONE}
 
-class LoginPageViewModel(application: Application) : AndroidViewModel(application){
+class LoginScreenViewModel(application: Application) : AndroidViewModel(application){
     private val credentialManager: CredentialManager = CredentialManager.create(application.applicationContext)
-   lateinit var auth: FirebaseAuth
-   lateinit var loginChoice: LoginType
-   var currentUser: FirebaseUser? = null
-   var authentified=false
+    var auth: FirebaseAuth = Firebase.auth
+    lateinit var loginChoice: LoginType
+    var currentUser: FirebaseUser? = null
+    var authentified=false
     init{
-        auth = Firebase.auth
+        auth.addAuthStateListener { firebaseAuth ->
+            currentUser=firebaseAuth.currentUser
+        }
         onStart()
     }
 
@@ -85,7 +86,7 @@ class LoginPageViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
 
-    private fun createAccount(email: String, password: String) {
+    public fun createAccount(email: String, password: String) {
         // [START create_user_with_email]
 
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(){ task ->
@@ -93,7 +94,7 @@ class LoginPageViewModel(application: Application) : AndroidViewModel(applicatio
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "createUserWithEmail:success")
                     val user = auth.currentUser
-                    updateUI(user)
+                    updateUI(currentUser)
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "createUserWithEmail:failure", task.exception)

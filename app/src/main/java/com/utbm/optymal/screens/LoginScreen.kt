@@ -1,4 +1,4 @@
-package com.utbm.optymal
+package com.utbm.optymal.screens
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,10 +36,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.utbm.optymal.viewModel.LoginScreenViewModel
+import com.utbm.optymal.R
 
 @Preview(showBackground = true)
 @Composable
-fun LoginPage(viewModel: LoginPageViewModel = viewModel()){
+fun LoginScreen(viewModel: LoginScreenViewModel = viewModel()){
     val context = LocalContext.current
     Surface(modifier = Modifier.fillMaxSize().background(Color.White)){
         Column (verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally){
@@ -73,18 +74,35 @@ fun LoginPage(viewModel: LoginPageViewModel = viewModel()){
                     }
                 },
             )
-            Button(
-                onClick = {
-                    if (email.isNotEmpty() && password.isNotEmpty()) {
-                        viewModel.signInByMail(email, password) // Call the sign-in function
-                    } else {
-                        // Handle the case when email or password is empty
-                        Log.w("SignInScreen", "Email or password cannot be empty.")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Connect")
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = {
+                        if (email.isNotEmpty() && password.isNotEmpty()) {
+                            viewModel.signInByMail(email, password) // Call the sign-in function
+                        } else {
+                            // Handle the case when email or password is empty
+                            Log.w("SignInScreen", "Email or password cannot be empty.")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    Text(text = "Connect")
+                }
+                Button(
+                    onClick = {
+                        if (email.isNotEmpty() && password.isNotEmpty()) {
+                            viewModel.createAccount(email, password) // Call the sign-in function
+                        } else {
+                            // Handle the case when email or password is empty
+                            Log.w("SignInScreen", "Email or password cannot be empty.")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    Text(text = "Create account")
+                }
             }
 
         }

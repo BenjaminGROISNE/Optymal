@@ -55,6 +55,8 @@ dependencies {
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("androidx.compose.material:material:1.8.0-rc01")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0-alpha12") // Check if stable version exists and update if possible.
+
+    implementation("androidx.navigation:navigation-compose:2.8.9")
     // Basic Dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
