@@ -8,9 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.utbm.optymal.viewModel.HomeScreenViewModel
+import com.utbm.optymal.viewModel.LoginScreenViewModel
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(nav :NavHostController,
+               viewModel: HomeScreenViewModel = viewModel(),
+               loginViewModel:LoginScreenViewModel =viewModel()) {
     // Main Column layout
     Column(
         modifier = Modifier
@@ -48,16 +54,15 @@ fun HomeScreen() {
 
         // Button 3: Log Out
         Button(
-            onClick = { /* Handle action */ },
+            onClick = { loginViewModel.signOut()
+                        nav.navigate("login")
+                      },
+
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Log Out")
         }
+
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen()
-}
