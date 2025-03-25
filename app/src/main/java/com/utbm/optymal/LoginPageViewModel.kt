@@ -1,20 +1,18 @@
 package com.utbm.optymal
 
-import android.content.ContentValues.TAG
-import android.content.Context
-import android.os.Build.ID
-import android.os.Bundle
+import android.app.Application
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.rememberCompositionContext
 import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.ClearCredentialException
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
@@ -22,19 +20,21 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import android.app.Activity
+import android.content.Context
+import androidx.lifecycle.application
+
 enum class LoginType {GOOGLE, MAIL,PHONE}
 
-class LoginPageViewModel(private val context: Context): ViewModel() {
-
-    private val credentialManager: CredentialManager = CredentialManager.create(context)
+class LoginPageViewModel(application: Application) : AndroidViewModel(application){
+    private val credentialManager: CredentialManager = CredentialManager.create(application.applicationContext)
    lateinit var auth: FirebaseAuth
    lateinit var loginChoice: LoginType
    var currentUser: FirebaseUser? = null
    var authentified=false
     init{
-        var auth = Firebase.auth
+        auth = Firebase.auth
         onStart()
     }
 
@@ -115,20 +115,61 @@ class LoginPageViewModel(private val context: Context): ViewModel() {
         // [END sign_in_with_email]
     }
 
-    private fun signInByGoogle(){
-// Instantiate a Google sign-in request
-        val googleIdOption = GetGoogleIdOption.Builder()
-            // Your server's client ID, not your Android client ID.
-            .setServerClientId(R.string.web_client_id.toString())
-            // Only show accounts previously used to sign in.
-            .setFilterByAuthorizedAccounts(true)
-            .build()
+    public fun signInByGoogle() {
+        viewModelScope.launch {
+            try {
+                // Instantiate a Google sign-in request
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setServerClientId(application.applicationContext.getString(R.string.default_web_client_id))
+                    .setFilterByAuthorizedAccounts(true)
+                    .build()
 
-// Create the Credential Manager request
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
-            .build()
+                // Create the Credential Manager request
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                // Call getCredential() inside coroutine
+                val response = credentialManager.getCredential(application.applicationContext, request)
+
+                // Now handle the sign-in
+                handleSignIn(response.credential)
+            } catch (e: Exception) {
+                Log.e(TAG, "Google Sign-In failed: ${e.localizedMessage}")
+            }
+        }
     }
+
+    private fun handleSignIn(credential: Credential) {
+        // Check if credential is of type Google ID
+        if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            // Create Google ID Token
+            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+
+            // Sign in to Firebase with using the token
+            firebaseAuthWithGoogle(googleIdTokenCredential.idToken)
+        } else {
+            Log.w(TAG, "Credential is not of type Google ID!")
+        }
+    }
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener() { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d(TAG, "signInWithCredential:success")
+                    val user = auth.currentUser
+                    updateUI(user)
+                } else {
+                    // If sign in fails, display a message to the user
+                    Log.w(TAG, "signInWithCredential:failure", task.exception)
+                    updateUI(null)
+                }
+            }
+    }
+
     private fun signInByMail(email: String,password: String){
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener() { task ->
@@ -181,6 +222,7 @@ class LoginPageViewModel(private val context: Context): ViewModel() {
             }
         }
     }
+
     private fun reload() {
 
         auth.currentUser?.reload()?.addOnCompleteListener { task ->
@@ -203,13 +245,3 @@ class LoginPageViewModel(private val context: Context): ViewModel() {
     }
 }
 
-
-class LoginPageViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LoginPageViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return LoginPageViewModel(context) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}
