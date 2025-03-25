@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.application
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 
 enum class LoginType {GOOGLE, MAIL,PHONE}
 
@@ -115,6 +116,16 @@ class LoginPageViewModel(application: Application) : AndroidViewModel(applicatio
         // [END sign_in_with_email]
     }
 
+    fun initGoogleSignIn(){
+        val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(application.getString(R.string.default_web_client_id)) // Web client ID from Firebase
+            .requestEmail()
+            .build()
+
+      //  val googleSignInClient = GoogleSignIn.getClient(applicationContext, googleSignInOptions)
+    }
+
+
     public fun signInByGoogle() {
         viewModelScope.launch {
             try {
@@ -170,7 +181,7 @@ class LoginPageViewModel(application: Application) : AndroidViewModel(applicatio
             }
     }
 
-    private fun signInByMail(email: String,password: String){
+    public fun signInByMail(email: String,password: String){
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener() { task ->
                 if (task.isSuccessful) {

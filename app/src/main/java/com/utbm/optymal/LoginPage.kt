@@ -1,5 +1,6 @@
 package com.utbm.optymal
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -72,7 +73,19 @@ fun LoginPage(viewModel: LoginPageViewModel = viewModel()){
                     }
                 },
             )
-            GoogleSignInButton(onClick = { viewModel.signInByGoogle() })
+            Button(
+                onClick = {
+                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                        viewModel.signInByMail(email, password) // Call the sign-in function
+                    } else {
+                        // Handle the case when email or password is empty
+                        Log.w("SignInScreen", "Email or password cannot be empty.")
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Connect")
+            }
 
         }
     }
