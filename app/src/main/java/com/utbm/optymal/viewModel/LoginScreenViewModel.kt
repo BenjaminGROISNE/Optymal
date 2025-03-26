@@ -37,7 +37,6 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
     private val credentialManager: CredentialManager =
         CredentialManager.create(application.applicationContext)
     var auth: FirebaseAuth = Firebase.auth
-    lateinit var loginChoice: LoginType
     var currentUser: FirebaseUser? = null
     var authenticated = mutableStateOf(false)
 
@@ -71,31 +70,6 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
     // [END on_start_check_user]
-
-    private fun checkUserProvider(currentUser: FirebaseUser) {
-        for (profile in currentUser.providerData) {
-            when (profile.providerId) {
-                EmailAuthProvider.PROVIDER_ID -> {
-                    loginChoice = LoginType.MAIL
-                    if (!currentUser.isEmailVerified) {
-                        println("Email not verified")
-                        sendEmailVerification()
-                    }
-                }
-
-                GoogleAuthProvider.PROVIDER_ID -> {
-                    loginChoice = LoginType.GOOGLE
-                    println("Signed in with Google")
-                }
-
-                PhoneAuthProvider.PROVIDER_ID -> {
-                    loginChoice = LoginType.PHONE
-                    println("Signed in with Phone")
-                }
-            }
-        }
-    }
-
 
     public fun createAccount(email: String, password: String) {
         // [START create_user_with_email]
@@ -166,17 +140,6 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    private fun signIn(email: String, password: String, choice: LoginType) {
-        // [START sign_in_with_email]
-        when (choice) {
-            LoginType.MAIL -> signInByMail(email, password)
-            LoginType.GOOGLE -> signInByGoogle()
-            LoginType.PHONE -> TODO()
-        }
-
-
-        // [END sign_in_with_email]
-    }
 
 
     public fun signInByGoogle() {
@@ -185,7 +148,8 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
                 // Instantiate a Google sign-in request
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setServerClientId(application.applicationContext.getString(R.string.default_web_client_id))
-                    .setFilterByAuthorizedAccounts(true)
+                    .setAutoSelectEnabled(true)
+                    .setFilterByAuthorizedAccounts(false)
                     .build()
 
                 // Create the Credential Manager request
@@ -224,8 +188,8 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
             .addOnCompleteListener() { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
+                    authenticated.value=true
                     Log.d(TAG, "signInWithCredential:success")
-                    val user = auth.currentUser
                 } else {
                     // If sign in fails, display a message to the user
                     Log.w(TAG, "signInWithCredential:failure", task.exception)
@@ -239,7 +203,6 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "signInWithEmail:success")
-                    this.loginChoice = LoginType.MAIL
                     authenticated.value = true
                 } else {
                     // If sign in fails, display a message to the user.

@@ -88,12 +88,14 @@ fun LoginScreen(nav :NavHostController?=null,viewModel: LoginScreenViewModel = v
                     Text(text = "Create account")
                 }
             }
-
+            GoogleSignInButton(onClick = { viewModel.signInByGoogle() })
         }
+
     }
+
     when(viewModel.authenticated.value) {
         true -> nav?.navigate("home")
-        false -> Text(text="Please Login")
+        false -> {}
     }
 
 }
