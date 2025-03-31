@@ -54,9 +54,10 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("androidx.compose.material:material:1.8.0-rc01")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0-alpha12") // Check if stable version exists and update if possible.
-
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0-alpha13") // Check if stable version exists and update if possible.
+    implementation("com.google.android.gms:play-services-identity:18.1.0")
     implementation("androidx.navigation:navigation-compose:2.8.9")
+    implementation(libs.firebase.firestore)
     // Basic Dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -66,7 +67,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.firebase.firestore)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

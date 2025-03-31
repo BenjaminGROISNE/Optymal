@@ -3,10 +3,7 @@ package com.utbm.optymal.viewModel
 import android.app.Application
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
@@ -14,28 +11,27 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.ClearCredentialException
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
-import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthEmailException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
-import kotlinx.coroutines.launch
-import androidx.lifecycle.application
-import com.google.firebase.auth.*
 import com.utbm.optymal.R
+import kotlinx.coroutines.launch
 
-enum class LoginType {GOOGLE, MAIL,PHONE}
 
 class LoginScreenViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val credentialManager: CredentialManager =
-        CredentialManager.create(application.applicationContext)
+    private val credentialManager: CredentialManager = CredentialManager.create(application.applicationContext)
     var auth: FirebaseAuth = Firebase.auth
     var currentUser: FirebaseUser? = null
     var authenticated = mutableStateOf(false)
@@ -50,30 +46,17 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
         onStart()
     }
 
-
-    // [START on_start_check_user]
     private fun onStart() {
         // Check if user is signed in
         currentUser = auth.currentUser
         if (currentUser != null) {
             // Refresh user data
-            currentUser!!.reload().addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    authenticated.value = true
-                } else {
-                    Log.e(TAG, "Failed to reload user.", task.exception)
-                }
-            }
-        } else {
-            authenticated.value = false
-            // No user is signed in
-        }
+            reload()
+        } else authenticated.value = false
     }
-    // [END on_start_check_user]
 
-    public fun createAccount(email: String, password: String) {
-        // [START create_user_with_email]
 
+    fun createAccount(email: String, password: String) {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener() { task ->
             if (task.isSuccessful) {
                 // Sign in success, update UI with the signed-in user's information
@@ -136,20 +119,16 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
                     }
                 }
             }
-            // [END create_user_with_email]
         }
     }
 
-
-
-    public fun signInByGoogle() {
+    fun signInByGoogle() {
         viewModelScope.launch {
             try {
                 // Instantiate a Google sign-in request
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setServerClientId(application.applicationContext.getString(R.string.default_web_client_id))
                     .setAutoSelectEnabled(true)
-                    .setFilterByAuthorizedAccounts(false)
                     .build()
 
                 // Create the Credential Manager request
@@ -174,7 +153,6 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
         if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             // Create Google ID Token
             val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-
             // Sign in to Firebase with using the token
             firebaseAuthWithGoogle(googleIdTokenCredential.idToken)
         } else {
@@ -197,7 +175,7 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
             }
     }
 
-    public fun signInByMail(email: String, password: String) {
+    fun signInByMail(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener() { task ->
                 if (task.isSuccessful) {
@@ -211,19 +189,7 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
             }
     }
 
-    private fun sendEmailVerification() {
-        // [START send_email_verification]
-        val user = auth.currentUser
-        user?.sendEmailVerification()?.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-            } else {
-                Log.e(TAG, "sendEmailVerification failed", task.exception)
-            }
-        }
-        // [END send_email_verification]
-    }
-
-    public fun signOut() {
+    fun signOut() {
         // Firebase sign out
         auth.signOut()
         authenticated.value = false
@@ -239,16 +205,11 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun reload() {
-        auth.currentUser?.reload()?.addOnCompleteListener { task ->
+        currentUser?.reload()?.addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                val user = auth.currentUser
-                if (user?.isEmailVerified == true) {
-
-                } else {
-
-                }
+                authenticated.value = true
             } else {
-
+                Log.e(TAG, "Failed to reload user.", task.exception)
             }
         }
     }
