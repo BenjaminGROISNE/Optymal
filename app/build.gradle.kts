@@ -53,7 +53,7 @@ dependencies {
     implementation("androidx.credentials:credentials:1.5.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    implementation("androidx.compose.material:material:1.8.0-rc01")
+    implementation("androidx.compose.material:material:1.8.0-rc02")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0-alpha13") // Check if stable version exists and update if possible.
     implementation("com.google.android.gms:play-services-identity:18.1.0")
     implementation("androidx.navigation:navigation-compose:2.8.9")
