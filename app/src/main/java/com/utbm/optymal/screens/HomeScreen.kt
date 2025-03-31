@@ -22,7 +22,7 @@ fun HomeScreen(nav :NavHostController,
                viewModel: HomeScreenViewModel = viewModel(),
                loginViewModel:LoginScreenViewModel =viewModel()) {
 
-
+fezfezfezkjifezhbufi
    // var dbManager by remember { mutableStateOf(FireStoreManager())}
   //  LaunchedEffect(Unit) {
  //       dbManager.setData()

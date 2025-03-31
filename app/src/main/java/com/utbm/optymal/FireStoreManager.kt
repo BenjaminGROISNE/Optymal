@@ -42,8 +42,8 @@ data class User(val userId: String,
                 val phoneNumber: String,
                 val address: String,
                 val city: String,
-                var ownedCarsUid: MutableList<String>,
-                var rentedCarUid: String?){
+                var ownedCarsid: MutableList<String>,
+                var rentedCarid: String?){
 
 
 
@@ -56,8 +56,8 @@ data class User(val userId: String,
             "phoneNumber" to phoneNumber,
             "address" to address,
             "city" to city,
-            "ownedCarsUid" to ownedCarsUid,
-            "rentedCarUid" to rentedCarUid
+            "ownedCarsUid" to ownedCarsid,
+            "rentedCarUid" to rentedCarid
         )
     }
 
@@ -120,8 +120,8 @@ class FireStoreManager {
         return getCars().document(car.carId)
     }
 
-    fun getCarData(userId: String): Task<DocumentSnapshot?> {
-        return getCarDoc(userId).get().addOnCompleteListener {
+    fun getCarData(carId: String): Task<DocumentSnapshot?> {
+        return getCarDoc(carId).get().addOnCompleteListener {
                 task -> task.result
         }.addOnFailureListener {
                 task -> null
@@ -144,6 +144,9 @@ class FireStoreManager {
         }
     }
 
+    fun getCar(userId: String): User? {
+        return convertDataToUser(getCarData(userId).result)
+    }
 
 
     fun addUser(user: User) {
