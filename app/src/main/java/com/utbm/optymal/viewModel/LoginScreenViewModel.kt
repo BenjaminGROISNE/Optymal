@@ -1,5 +1,6 @@
 package com.utbm.optymal.viewModel
 
+import android.app.Activity
 import android.app.Application
 import android.util.Log
 import android.widget.Toast
@@ -17,6 +18,7 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthEmailException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -25,11 +27,15 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
+import com.utbm.optymal.FireStoreManager
 import com.utbm.optymal.R
 import kotlinx.coroutines.launch
 
 
 class LoginScreenViewModel(application: Application) : AndroidViewModel(application) {
+
+
+    val dbManager=FireStoreManager()
 
     private val credentialManager: CredentialManager = CredentialManager.create(application.applicationContext)
     var auth: FirebaseAuth = Firebase.auth
@@ -63,6 +69,7 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
                 Log.d(TAG, "createUserWithEmail:success")
                 currentUser = auth.currentUser
                 authenticated.value = true
+                dbManager.addUser(currentUser!!.uid,email)
             } else {
                 // If sign in fails, display a message to the user.
                 // If sign in fails, handle the errors
@@ -122,13 +129,45 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun signInByGoogle() {
+    fun deleteUserAccount(password: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val currentUser = auth.currentUser
+
+        // Check if the user is logged in
+        if (currentUser != null) {
+            val credential = EmailAuthProvider.getCredential(currentUser.email!!, password)
+
+            // Re-authenticate the user
+            currentUser.reauthenticate(credential)
+                .addOnCompleteListener { reAuthTask ->
+                    if (reAuthTask.isSuccessful) {
+                        // Proceed with account deletion
+                        dbManager.deleteUser(currentUser.uid)
+                        currentUser.delete()
+                            .addOnCompleteListener { deleteTask ->
+                                if (deleteTask.isSuccessful) {
+                                    Log.d("Firebase", "User account deleted")
+                                    authenticated.value=false
+                                    onSuccess()
+                                } else {
+                                    onFailure(deleteTask.exception ?: Exception("Unknown error"))
+                                }
+                            }
+                    } else {
+                        onFailure(reAuthTask.exception ?: Exception("Re-authentication failed"))
+                    }
+                }
+        } else {
+            onFailure(Exception("No user logged in"))
+        }
+    }
+
+    fun signInByGoogle(activity: Activity?) {
         viewModelScope.launch {
             try {
                 // Instantiate a Google sign-in request
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setServerClientId(application.applicationContext.getString(R.string.default_web_client_id))
-                    .setAutoSelectEnabled(true)
+                    .setAutoSelectEnabled(false)
                     .build()
 
                 // Create the Credential Manager request
@@ -137,8 +176,7 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
                     .build()
 
                 // Call getCredential() inside coroutine
-                val response =
-                    credentialManager.getCredential(application.applicationContext, request)
+                val response =credentialManager.getCredential(application.applicationContext, request)
 
                 // Now handle the sign-in
                 handleSignIn(response.credential)
@@ -165,6 +203,7 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
         auth.signInWithCredential(credential)
             .addOnCompleteListener() { task ->
                 if (task.isSuccessful) {
+                    dbManager.addUser(currentUser!!.uid,currentUser!!.email!!)
                     // Sign in success, update UI with the signed-in user's information
                     authenticated.value=true
                     Log.d(TAG, "signInWithCredential:success")

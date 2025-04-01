@@ -1,6 +1,7 @@
 package com.utbm.optymal.screens
 
 import android.util.Log
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,7 +23,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,8 +40,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.utbm.optymal.FireStoreManager
 import com.utbm.optymal.R
+import com.utbm.optymal.Screen
 import com.utbm.optymal.viewModel.LoginScreenViewModel
 
 @Preview(showBackground = true)
@@ -107,13 +107,14 @@ fun LoginScreen(nav :NavHostController?=null,viewModel: LoginScreenViewModel = v
                     Text(text = "Create account")
                 }
             }
-            GoogleSignInButton(onClick = { viewModel.signInByGoogle() })
+            val activity = LocalActivity.current
+            GoogleSignInButton(onClick = { viewModel.signInByGoogle(activity) })
         }
 
     }
 
     when(viewModel.authenticated.value) {
-        true -> nav?.navigate("home")
+        true -> nav?.navigate(Screen.Home.route)
         false -> {}
     }
 

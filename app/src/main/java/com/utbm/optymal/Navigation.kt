@@ -6,14 +6,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.utbm.optymal.screens.*
-import com.utbm.optymal.viewModel.*
+import com.utbm.optymal.screens.HomeScreen
+import com.utbm.optymal.screens.LoginScreen
+import com.utbm.optymal.viewModel.HomeScreenViewModel
+import com.utbm.optymal.viewModel.LoginScreenViewModel
 
 // Define your navigation routes
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Home : Screen("home")
 }
+
+
+
 
 @Composable
 fun Navigation(navController: NavHostController = rememberNavController()) {
