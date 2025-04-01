@@ -11,6 +11,8 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.ClearCredentialException
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
@@ -162,26 +164,69 @@ class LoginScreenViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun signInByGoogle(activity: Activity?) {
+        val currentActivity = activity ?: run {
+            Log.e(TAG, "Activity is null, cannot proceed with Google Sign-In.")
+            // Update UI State to show error
+            // _signInState.value = SignInState.Error("An unexpected error occurred.")
+            return
+        }
+
         viewModelScope.launch {
+            // _signInState.value = SignInState.Loading // Update UI State
             try {
-                // Instantiate a Google sign-in request
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setServerClientId(application.applicationContext.getString(R.string.default_web_client_id))
-                    .setAutoSelectEnabled(false)
+                    // Consider setting autoSelect to false initially for better debugging
+                    .setAutoSelectEnabled(true)
+                    // setFilterByAuthorizedAccounts(false) is usually better if you want
+                    // the user to pick from *any* Google account on the device, not just
+                    // ones previously used with your app's client ID.
+                    .setFilterByAuthorizedAccounts(true)
                     .build()
 
-                // Create the Credential Manager request
                 val request = GetCredentialRequest.Builder()
                     .addCredentialOption(googleIdOption)
                     .build()
 
-                // Call getCredential() inside coroutine
-                val response =credentialManager.getCredential(application.applicationContext, request)
+                Log.d(TAG, "Requesting Google credential...")
+                val response = credentialManager.getCredential(currentActivity, request)
+                Log.d(TAG, "Google credential received successfully.")
+                handleSignIn(response.credential) // Handles success
 
-                // Now handle the sign-in
-                handleSignIn(response.credential)
-            } catch (e: Exception) {
-                Log.e(TAG, "Google Sign-In failed: ${e.localizedMessage}")
+            } catch (e: NoCredentialException) { // Catch specific exception if available/applicable
+                Log.w(TAG, "Google Sign-In failed: No credential found.", e)
+                Toast.makeText(
+                    application.applicationContext,
+                    "No Google Account found on this device. Please add one in device Settings or use another sign-in method.",
+                    Toast.LENGTH_LONG
+                ).show()
+                // INFORM USER AND OFFER ALTERNATIVES
+                // _signInState.value = SignInState.Error(
+                //    "No Google Account found on this device. Please add one in device Settings or use another sign-in method."
+                // )
+                // Trigger UI to show other options (Email/Password, etc.)
+
+            } catch (e: GetCredentialException) { // Catch broader credential exceptions
+                Log.e(TAG, "Google Sign-In failed via GetCredentialException", e)
+                Toast.makeText(
+                    application.applicationContext,
+                    "An error occurred during Google Sign-In. Please try again later.",
+                    Toast.LENGTH_LONG
+                ).show()
+                // Handle other credential errors (e.g., user cancellation, interruption)
+                // You might check e.type for more details if the API provides useful types
+                // _signInState.value = SignInState.Error("Google Sign-In failed: ${e.message}")
+                // Offer alternatives
+
+            } catch (e: Exception) { // Catch any other unexpected exceptions
+                Log.e(TAG, "Google Sign-In failed with generic exception", e)
+                Toast.makeText(
+                    application.applicationContext,
+                    "An error occurred during Google Sign-In. Please try again later.",
+                    Toast.LENGTH_LONG
+                ).show()
+                // _signInState.value = SignInState.Error("An error occurred during Google Sign-In.")
+                // Offer alternatives
             }
         }
     }
