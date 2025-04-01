@@ -1,6 +1,6 @@
 package com.utbm.optymal
 
-
+import kotlin.random.Random
 
 
 enum class CarField(val key: String) {
@@ -17,7 +17,6 @@ enum class CarField(val key: String) {
 
 
 enum class UserField(val key: String) {
-    USER_ID("userId"),
     FIRST_NAME("firstName"),
     LAST_NAME("lastName"),
     EMAIL("email"),
@@ -29,7 +28,6 @@ enum class UserField(val key: String) {
 }
 
 data class Car(
-    var carId: String,
     val brand: String,
     val model: String,
     val year: Int,
@@ -40,13 +38,8 @@ data class Car(
     val userId: String
 ){
 
-    fun setId(id: String) {
-        carId = id
-    }
-
     fun toMap(): Map<String, Any> {
         return mapOf(
-            CarField.CAR_ID.key to carId,
             CarField.BRAND.key to brand,
             CarField.MODEL.key to model,
             CarField.YEAR.key to year,
@@ -61,30 +54,28 @@ data class Car(
 }
 
 data class User(
-    val userId: String,
     val firstName: String,
     val lastName: String,
     val email: String,
     val phoneNumber: String,
     val address: String,
     val city: String,
-    var ownedCarsUid: List<String>,
-    var rentedCarUid: String
+    var ownedCarsId: List<String>,
+    var rentedCarId: String
 ){
 
-    constructor(userId: String,email: String) : this(userId, "", "", email, "", "", "", emptyList(), "")
+    constructor(email: String) : this("", "", email, "", "", "", emptyList(), "")
 
     fun toMap(): Map<String, Any> {
         return mapOf(
-            UserField.USER_ID.key to userId,
             UserField.FIRST_NAME.key to firstName,
             UserField.LAST_NAME.key to lastName,
             UserField.EMAIL.key to email,
             UserField.PHONE_NUMBER.key to phoneNumber,
             UserField.ADDRESS.key to address,
             UserField.CITY.key to city,
-            UserField.OWNED_CARS_UID.key to ownedCarsUid,
-            UserField.RENTED_CAR_UID.key to rentedCarUid
+            UserField.OWNED_CARS_UID.key to ownedCarsId,
+            UserField.RENTED_CAR_UID.key to rentedCarId
         )
     }
 
@@ -94,31 +85,28 @@ data class User(
 
 
 val user1 = User(
-    userId = "user_001",
     firstName = "John",
     lastName = "Doe",
     email = "john.doe@example.com",
     phoneNumber = "123-456-7890",
     address = "123 Main St",
     city = "New York",
-    ownedCarsUid = listOf("car_101", "car_102"),
-    rentedCarUid = "car_103"
+    ownedCarsId = listOf("car_101", "car_102"),
+    rentedCarId = "car_103"
 )
 
 val user2 = User(
-    userId = "user_002",
     firstName = "Jane",
     lastName = "Smith",
     email = "jane.smith@example.com",
     phoneNumber = "987-654-3210",
     address = "456 Elm St",
     city = "Los Angeles",
-    ownedCarsUid = listOf("car_104"),
-    rentedCarUid = ""
+    ownedCarsId = listOf("car_104"),
+    rentedCarId = ""
 )
 
 val car1 = Car(
-    carId = "car_101",
     brand = "Toyota",
     model = "Camry",
     year = 2020,
@@ -130,7 +118,6 @@ val car1 = Car(
 )
 
 val car2 = Car(
-    carId = "car_102",
     brand = "Honda",
     model = "Civic",
     year = 2019,
@@ -142,7 +129,6 @@ val car2 = Car(
 )
 
 val car3 = Car(
-    carId = "car_103",
     brand = "Ford",
     model = "Focus",
     year = 2021,
@@ -154,7 +140,6 @@ val car3 = Car(
 )
 
 val car4 = Car(
-    carId = "car_104",
     brand = "Tesla",
     model = "Model 3",
     year = 2022,
@@ -164,3 +149,67 @@ val car4 = Car(
     ownerId = "user_002",
     userId = ""
 )
+
+
+
+private val charPool : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+
+/**
+ * Generates a random alphanumeric string of a specified length.
+ */
+private fun generateRandomString(length: Int = Random.nextInt(8, 16)): String {
+    return (1..length)
+        .map { Random.nextInt(0, charPool.size) }
+        .map(charPool::get)
+        .joinToString("")
+}
+
+// --- Randomization Functions ---
+
+/**
+ * Creates a Car object with randomized data, including random strings
+ * for string fields.
+ */
+fun randomizeCar(): Car {
+    val year = Random.nextInt(1990, 2025) // Year between 1990 and 2024
+    val price = Random.nextDouble(3000.0, 95000.0) // Price between $3k and $95k
+    val mileage = Random.nextInt(0, 250001) // Mileage between 0 and 250k
+
+    // Decide if the car is currently rented/assigned to a user (e.g., 30% chance)
+    val randomUserId = if (Random.nextInt(0, 10) < 3) generateRandomString() else ""
+
+    return Car(
+        brand = generateRandomString(),
+        model = generateRandomString(),
+        year = year,
+        color = generateRandomString(length = Random.nextInt(5, 10)), // Shorter for color?
+        price = price,
+        mileage = mileage,
+        ownerId = generateRandomString(), // Typically an ID
+        userId = randomUserId         // Can be empty or an ID
+    )
+}
+
+/**
+ * Creates a User object with randomized data, including random strings
+ * for string fields.
+ */
+fun randomizeUser(): User {
+    // Generate random number of owned car IDs (e.g., 0 to 5)
+    val numOwnedCars = Random.nextInt(0, 6)
+    val randomOwnedCarIds = List(numOwnedCars) { generateRandomString() }
+
+    // Decide if the user is currently renting a car (e.g., 50% chance)
+    val randomRentedCarId = if (Random.nextBoolean()) generateRandomString() else ""
+
+    return User(
+        firstName = generateRandomString(length = Random.nextInt(5, 12)),
+        lastName = generateRandomString(length = Random.nextInt(5, 15)),
+        email = generateRandomString(length = Random.nextInt(10, 25)), // Just random chars for email too
+        phoneNumber = generateRandomString(length = Random.nextInt(10, 15)), // Random chars for phone
+        address = generateRandomString(length = Random.nextInt(15, 40)),
+        city = generateRandomString(length = Random.nextInt(6, 18)),
+        ownedCarsId = randomOwnedCarIds,
+        rentedCarId = randomRentedCarId
+    )
+}
