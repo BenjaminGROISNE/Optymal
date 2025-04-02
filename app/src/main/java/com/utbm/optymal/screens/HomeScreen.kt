@@ -59,7 +59,7 @@ fun HomeScreen(nav :NavHostController,
 
         // Button 1: Go to Profile
         Button(
-            onClick = { /* Handle action */ },
+            onClick = { nav.navigate(Screen.Profile.route)  },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
@@ -69,7 +69,8 @@ fun HomeScreen(nav :NavHostController,
 
         // Button 2: Go to Settings
         Button(
-            onClick = { /* Handle action */ },
+            onClick = { loginViewModel.signOut()
+                nav.navigate(Screen.Login.route)},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
