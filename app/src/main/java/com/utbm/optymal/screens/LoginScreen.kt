@@ -38,16 +38,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.utbm.optymal.R
 import com.utbm.optymal.Screen
-import com.utbm.optymal.viewModel.LoginScreenViewModel
+import com.utbm.optymal.SharedViewModels
 
-@Preview(showBackground = true)
+
 @Composable
-fun LoginScreen(nav :NavHostController?=null,viewModel: LoginScreenViewModel = viewModel()){
+fun LoginScreen(nav :NavHostController?=null,vms:SharedViewModels){
 
+    val viewModel= vms.login
     Surface(modifier = Modifier.fillMaxSize().background(Color.White)){
         Column (verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally){
             var showPassword by remember { mutableStateOf(false) }

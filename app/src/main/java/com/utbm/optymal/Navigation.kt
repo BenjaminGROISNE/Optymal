@@ -1,6 +1,7 @@
 package com.utbm.optymal
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -20,19 +21,29 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun Navigation(navController: NavHostController = rememberNavController()) {
+fun rememberSharedViewModels(): SharedViewModels {
     val loginViewModel: LoginScreenViewModel = viewModel()
     val homeViewModel: HomeScreenViewModel = viewModel()
+    return remember { SharedViewModels(loginViewModel, homeViewModel) }
+}
 
+data class SharedViewModels(
+    val login: LoginScreenViewModel,
+    val home: HomeScreenViewModel
+)
+
+@Composable
+fun Navigation(navController: NavHostController = rememberNavController()) {
+    val vms = rememberSharedViewModels()
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
-            LoginScreen(navController, loginViewModel)
+            LoginScreen(navController,vms)
         }
         composable(Screen.Home.route) {
-            HomeScreen(navController, homeViewModel, loginViewModel)
+            HomeScreen(navController, vms)
         }
         composable(Screen.Profile.route) {
-            ProfileScreen(navController,loginViewModel)
+            ProfileScreen(navController,vms)
         }
     }
 }

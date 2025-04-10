@@ -23,21 +23,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.utbm.optymal.FireStoreManager
 import com.utbm.optymal.Screen
+import com.utbm.optymal.SharedViewModels
 import com.utbm.optymal.randomizeCar
 import com.utbm.optymal.randomizeUser
-import com.utbm.optymal.viewModel.HomeScreenViewModel
-import com.utbm.optymal.viewModel.LoginScreenViewModel
 
 @Composable
 fun HomeScreen(nav :NavHostController,
-               viewModel: HomeScreenViewModel = viewModel(),
-               loginViewModel:LoginScreenViewModel =viewModel()) {
+               vms:SharedViewModels) {
 
-
+    val loginViewModel=vms.login
      var dbManager by remember { mutableStateOf(FireStoreManager())}
      LaunchedEffect(Unit) {
        //  dbManager.getUser()
@@ -89,7 +86,7 @@ fun HomeScreen(nav :NavHostController,
             Text(text = "Log Out")
         }
         // Button 4: Log Out
-        DeleteAccountButton(nav,loginViewModel)
+        DeleteAccountButton(nav,vms)
         RandomDataDisplayScreenLazy(dbManager)
     }
 }
@@ -180,7 +177,8 @@ fun RandomDataDisplayScreenLazy(
 }
 
 @Composable
-fun DeleteAccountButton(nav: NavHostController, loginViewModel: LoginScreenViewModel) {
+fun DeleteAccountButton(nav: NavHostController,vms:SharedViewModels) {
+    val loginViewModel=vms.login
     // State to control the visibility of the dialog
     var showDialog by remember { mutableStateOf(false) }
 
